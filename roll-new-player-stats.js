@@ -145,7 +145,7 @@ new Dialog({
 			die_roll_results = " [";
 			for (i = 0; i < die; i++){
 				do{
-					roll = new Roll("1d6").evaluate({async: false}).total					 
+					roll = new Roll("1d6").evaluate({async: false}).total// I want to see the results from each d6, so I am not using any shorthand like 4d6r1dl					 
 					if(roll > 1 || !re_roll_ones){
 						//console.log("roll(" + i + ")" + roll);
 						current_rolls.push(roll);
