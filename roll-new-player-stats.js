@@ -23,7 +23,7 @@ let namedfields = (...fields) => {
 let num_dice = namedfields('formula', 'die', 'difficulty')
 var num_die = [
   num_dice('3d6 - Keep All', 3, 0),
-  num_dice('2d6+6 - Keep All', 2, 1),
+  num_dice('2d6+6 - Keep All', 2, 3),
   num_dice('4d6 - Drop Lowest', 4, 2)
 ];
 
