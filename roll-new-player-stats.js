@@ -29,13 +29,13 @@ var num_die = [
 let num_roll = namedfields('method', 'rolls', 'difficulty')
 var num_rolls = [
   num_roll('6 Rolls - Keep All', 6, 0),
-  num_roll('7 Rolls - Drop Lowest', 7, 2)
+  num_roll('7 Rolls - Drop Lowest', 7, 1)
 ];
 
 let bonus = namedfields('method', 'difficulty')
 var bonus_points = [
   bonus('0 Bonus Points', 0),
-  bonus('1 Bonus Point', 2),
+  bonus('1 Bonus Point', 1),
   bonus('1d4 Bonus Points', 3)
 ];
 
@@ -138,7 +138,8 @@ new Dialog({
 		let over_eighteen = html[0].querySelector("#over-eighteen").checked;
 		let distribute_results = html[0].querySelector("#distribute-results").checked;
 		
-		while(roll_count < rolls)// Roll seven times
+		// Roll them dice!
+		while(roll_count < rolls)
 		{
 			var current_rolls = [];
 			die_roll_results = " [";
@@ -189,8 +190,8 @@ new Dialog({
 		
 		// Get difficulty level		
 		var difficulty = die_difficulty + rolls_difficulty + bonus_method_difficulty;
-		difficulty += re_roll_ones ? 2 : 0;
-		difficulty += over_eighteen ? 3 : 0;
+		difficulty += re_roll_ones ? 3 : 0;
+		difficulty += over_eighteen ? 2 : 0;
 		difficulty += distribute_results ? 3 : 0;
 		
 		var difficulty_desc = "";
