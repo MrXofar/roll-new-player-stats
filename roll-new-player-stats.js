@@ -23,6 +23,7 @@ let namedfields = (...fields) => {
 let num_dice = namedfields('formula', 'die', 'difficulty')
 var num_die = [
   num_dice('3d6 - Keep All', 3, 0),
+  num_dice('2d6+6 - Keep All', 2, 1),
   num_dice('4d6 - Drop Lowest', 4, 2)
 ];
 
@@ -145,7 +146,7 @@ new Dialog({
 			die_roll_results = " [";
 			for (i = 0; i < die; i++){
 				do{
-					roll = new Roll("1d6").evaluate({async: false}).total// I want to see the results from each d6, so I am not using any shorthand like 4d6r1dl					 
+					roll = new Roll("1d6").evaluate({async: false}).total// I want to see the results from each d6, so I am not using any shorthand like 4d6r1dl	
 					if(roll > 1 || !re_roll_ones){
 						//console.log("roll(" + i + ")" + roll);
 						current_rolls.push(roll);
@@ -159,6 +160,7 @@ new Dialog({
 			
 			current_result = current_rolls.reduce((a,b) => a + b) - (die === 4 ? Math.min(...current_rolls) : 0);
 			//console.log("current_result(" + roll_count + ")" + current_result);
+			current_result += num_diceIndex === 1 ? 6 : 0;// 2d6+6
 			att_results.push(current_result);
 			roll_count += 1;
 		}
@@ -204,8 +206,8 @@ new Dialog({
 			case 3:
 				difficulty_desc = "Veteran";
 				break;
-			case 5:
 			case 4:
+			case 5:
 			case 6:
 			case 7:
 			case 8:
