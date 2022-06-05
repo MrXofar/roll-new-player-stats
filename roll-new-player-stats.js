@@ -237,7 +237,9 @@ new Dialog({
 		{	
 			if(att_results[f] != undefined){att_idx++;}
 			apply_to = !distribute_results && att_results[f] != undefined ? attributes[att_idx].attribute : "Result #" + (f+1) + ": ";
-			results_message += apply_to + (att_results[f] != undefined ? att_results[f] : "Dropped " + dropped_val) + die_rolls[f] + "<br />";
+			results_message += apply_to + (att_results[f] != undefined ? att_results[f] : "Dropped " + dropped_val) + die_rolls[f];
+			if(att_results[f] != undefined && att_results[f] === 18){results_message += " - Booyah!";}
+			results_message += "<br />";
 		}
 		results_message += (bonus_Index > 0 ? "</br><b>Bonus:</b> " + bonus_roll + "</br></br>" : "</br>");
 		
