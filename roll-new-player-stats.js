@@ -1,7 +1,7 @@
 // A fun macro to speed things up rolling character attributes. 
 // Offers a few settings to provide degrees of difficulty
 // The fewer selections you make, the lower the difficulty score, and the less likely fate will shine a positive light on your character's rolls.
-// 
+// Added support for Dice So Nice! to show for self.
 // by: MrFoxar
 
 ChatMessage.create({
@@ -23,8 +23,8 @@ let namedfields = (...fields) => {
 let num_dice = namedfields('formula', 'die', 'difficulty')
 var num_die = [
   num_dice('3d6 - Keep All', 3, 0),
-  num_dice('2d6+6 - Keep All', 2, 3),
-  num_dice('4d6 - Drop Lowest', 4, 2)
+  num_dice('4d6 - Drop Lowest', 4, 2),
+  num_dice('2d6+6 - Keep All', 2, 3)
 ];
 
 let num_roll = namedfields('method', 'rolls', 'difficulty')
@@ -55,7 +55,7 @@ new Dialog({
   title: `Roll New Player Attributes`,
   content: `
 <form>
-<p>The more selections you make, the more likely fate will shine a positive light on your character's attributes - and the less challenging gameplay may be... results may vary.</p>
+<p>The more selections you make, the more brightly fate will shine upon your character's attributes - and the less challenging gameplay may be... results may vary.</p>
   <div class="form-group">
     <label>Number of Dice:</label>
     <select id="num-dice" name="num-dice">	  
@@ -113,63 +113,59 @@ new Dialog({
     },
   },
   default: "yes",
-  close: html => {
+  close: async (html) => {
     if (applyChanges) {
 		
+		var dice_so_nice = game.modules.get("dice-so-nice").active;
+
 		var roll_count = 0;
-		var att_results = [];
+		//var att_results = [];
 		var roll = 0;
 		var current_result = 0;
 		var die_roll_results = "";
 		var die_rolls = [];
 		
+		// Number of d6 to roll
 		let num_diceIndex = parseInt(html.find('[name="num-dice"]')[0].value);
 		let die = num_die[num_diceIndex].die;
 		let die_difficulty = num_die[num_diceIndex].difficulty;	
 		
+		// Number of times d6 are rolled
 		let num_rollIndex = parseInt(html.find('[name="num-rolls"]')[0].value);
 		let rolls = num_rolls[num_rollIndex].rolls;
 		let rolls_difficulty = num_rolls[num_rollIndex].difficulty;
 		
+		// Number of Bonus Points to add to final results
 		let bonus_Index = parseInt(html.find('[name="bonus-points"]')[0].value);
 		let bonus_method = bonus_points[bonus_Index].method;
 		let bonus_method_difficulty = bonus_points[bonus_Index].difficulty;
 		
+		// Other stuff (from the check boxes)
 		let re_roll_ones = html[0].querySelector("#re_roll_ones").checked;
 		let over_eighteen = html[0].querySelector("#over-eighteen").checked;
 		let distribute_results = html[0].querySelector("#distribute-results").checked;
 		
 		// Roll them dice!
-		while(roll_count < rolls)
-		{
-			var current_rolls = [];
-			die_roll_results = " [";
-			for (i = 0; i < die; i++){
-				do{
-					roll = new Roll("1d6").evaluate({async: false}).total// I want to see the results from each d6, so I am not using any shorthand like 4d6r1dl	
-					if(roll > 1 || !re_roll_ones){
-						//console.log("roll(" + i + ")" + roll);
-						current_rolls.push(roll);
-						die_roll_results += roll + (i < die-1 ? ", " : "");
-					}					
-				}while(roll === 1 && re_roll_ones)
-			}
-			
-			die_roll_results += "]";
-			die_rolls.push(die_roll_results);
-			
-			current_result = current_rolls.reduce((a,b) => a + b) - (die === 4 ? Math.min(...current_rolls) : 0);
-			//console.log("current_result(" + roll_count + ")" + current_result);
-			current_result += num_diceIndex === 1 ? 6 : 0;// 2d6+6
-			att_results.push(current_result);
-			roll_count += 1;
+		var result_sets = [];
+		var num_sets = rolls;
+		var roll_formula = die + "d6" + (re_roll_ones ? "r1" : "") + (num_die[num_diceIndex].formula.includes('Drop Lowest') ? "dl" : "")
+		roll_formula += die === 2 ? "+6" : "";// 2d6+6 method
+		//console.log("roll_formula = " + roll_formula);
+		for(rs = 0;rs < num_sets; rs++){
+			var roll = await new Roll(roll_formula);
+			var rolled_results = await roll.evaluate({async: false});
+			if(dice_so_nice){game.dice3d.showForRoll(roll);}
+			var d6_results = rolled_results.dice[0].results.map(function (e) {return e.result;}).join(', ');    
+			//console.log(rolled_results.total + " = [" + d6_results + "]");
+			result_sets.push(rolled_results)
+			//console.log(result_sets[rs]);
 		}
-
 		// Drop lowest
-		var dropped_val = Math.min(...att_results);
-		var dropped_val_idx = att_results.indexOf(dropped_val);
-		if(rolls === 7){
-			delete att_results[dropped_val_idx ];
+		var drop_val_idx = -1;
+		if(num_rolls[num_rollIndex].method.includes('Drop Lowest')){			
+			var results = result_sets.map(function (e) {return e.total;}).join(',').split(',').map(Number);
+			var drop_val = Math.min(...results);
+			drop_val_idx = results.indexOf(drop_val);
 		}
 		
 		// Bonus Points
@@ -178,15 +174,14 @@ new Dialog({
 			case "0 Bonus Points":  
 				bonus_roll = 0
 				break;
-
 			case "1 Bonus Point":  
 				bonus_roll = 1
 				break;
-
 			case "1d4 Bonus Points":
-				bonus_roll = new Roll("1d4").evaluate({async: false}).total
+				bonus = await new Roll("1d4");
+				bonus_roll = await bonus.evaluate({async: false}).total;
+				if(dice_so_nice){game.dice3d.showForRoll(bonus);}
 				break;
-
 			default:
 		}		
 		
@@ -196,7 +191,9 @@ new Dialog({
 		difficulty += over_eighteen ? 2 : 0;
 		difficulty += distribute_results ? 3 : 0;
 		
-		var difficulty_desc = "";
+		var difficulty_desc;
+		// There are so many other ways to skin this cat,... 
+		// ...but I chose this way because it requires very little effort or brain power to understand or modify.
 		switch(difficulty){
 			case 0:
 				difficulty_desc = "HardCore";
@@ -224,7 +221,7 @@ new Dialog({
 				break;
 		}
 
-		// Build message for Method & Results
+		// Begin building message
 		var results_message = "<b>Method:</b></br>";
 		results_message += num_die[num_diceIndex].formula + (re_roll_ones ? "; but re-roll ones" : "") + "</br>";
 		results_message += num_rolls[num_rollIndex].method + "</br>";
@@ -233,19 +230,24 @@ new Dialog({
 		results_message += distribute_results ? "Distribute freely</br></br>" : "Apply as rolled</br></br>";
 		results_message += "<b>Dificulty:</b> " + difficulty_desc + "</br></br>";
 		results_message += "<b>Results:</b></br>";
+
+		// Add results to message
 		var apply_to = "";
-		var att_idx = -1;
-		for(f = 0;f < att_results.length; f++)
-		{	
-			if(att_results[f] != undefined){att_idx++;}
-			apply_to = !distribute_results && att_results[f] != undefined ? attributes[att_idx].attribute : "Result #" + (f+1) + ": ";
-			results_message += apply_to + (att_results[f] != undefined ? att_results[f] : "Dropped " + dropped_val) + die_rolls[f];
-			if(att_results[f] != undefined && att_results[f] === 18){results_message += " - Booyah!";}
-			results_message += "<br />";
+		var att_idx = 0;
+		for(set = 0; set < result_sets.length; set++){
+			//console.log(result_sets[set]);
+			var d6_results = result_sets[set].dice[0].results.map(function (e) {return e.result;}).join(', ');  
+			apply_to = !distribute_results && drop_val_idx !== set ? attributes[att_idx].attribute : "Result #" + (set+1) + ": "
+			results_message += apply_to;
+			results_message += drop_val_idx === set ? "Dropped => " : "";
+			results_message += result_sets[set].total + " [" + d6_results + "]</br>";
+			if (drop_val_idx !== set){att_idx++;}
 		}
+
+		// Add Bonus Point(s) to message
 		results_message += (bonus_Index > 0 ? "</br><b>Bonus:</b> " + bonus_roll + "</br></br>" : "</br>");
 		
-		// Note from DM
+		// Add Note from DM to message
 		results_message += "<b>Note from DM:</b></br>";
 		results_message += distribute_results ? "You may distribute these scores among your attributes as you desire. " : "Each result must be applied to attributes in the order they were rolled. ";
 		if(bonus_Index > 0){results_message += "The Bonus point(s) may be distributed among any of your scores. ";}		
