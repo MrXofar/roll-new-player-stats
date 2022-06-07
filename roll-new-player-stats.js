@@ -117,13 +117,6 @@ new Dialog({
     if (applyChanges) {
 		
 		var dice_so_nice = game.modules.get("dice-so-nice").active;
-
-		var roll_count = 0;
-		//var att_results = [];
-		var roll = 0;
-		var current_result = 0;
-		var die_roll_results = "";
-		var die_rolls = [];
 		
 		// Number of d6 to roll
 		let num_diceIndex = parseInt(html.find('[name="num-dice"]')[0].value);
