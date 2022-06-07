@@ -155,11 +155,12 @@ new Dialog({
 			var roll = await new Roll(roll_formula);
 			var rolled_results = await roll.evaluate({async: false});
 			if(dice_so_nice){game.dice3d.showForRoll(roll);}
-			var d6_results = rolled_results.dice[0].results.map(function (e) {return e.result;}).join(', ');    
+			//var d6_results = rolled_results.dice[0].results.map(function (e) {return e.result;}).join(', ');    
 			//console.log(rolled_results.total + " = [" + d6_results + "]");
 			result_sets.push(rolled_results)
 			//console.log(result_sets[rs]);
 		}
+
 		// Drop lowest
 		var drop_val_idx = -1;
 		if(num_rolls[num_rollIndex].method.includes('Drop Lowest')){			
