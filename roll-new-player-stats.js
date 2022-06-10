@@ -141,7 +141,7 @@ new Dialog({
 		// Roll them dice!
 		var result_sets = [];
 		var num_sets = rolls;
-		var roll_formula = die + "d6" + (re_roll_ones ? "r1" : "") + (num_die[num_diceIndex].formula.includes('Drop Lowest') ? "dl" : "")
+		var roll_formula = die + "d6" + (re_roll_ones ? "rr1" : "") + (num_die[num_diceIndex].formula.includes('Drop Lowest') ? "dl" : "")
 		roll_formula += die === 2 ? "+6" : "";// 2d6+6 method
 		//console.log("roll_formula = " + roll_formula);
 		for(rs = 0;rs < num_sets; rs++){
@@ -234,7 +234,9 @@ new Dialog({
 			apply_to = !distribute_results && drop_val_idx !== set ? attributes[att_idx].attribute : "Result #" + (set+1) + ": "
 			results_message += apply_to;
 			results_message += drop_val_idx === set ? "Dropped => " : "";
-			results_message += result_sets[set].total + " [" + d6_results + "]</br>";
+			results_message += result_sets[set].total + " [" + d6_results + "]";
+			if(drop_val_idx !== set && result_sets[set].total === 18){results_message += " - Booyah!";}
+			results_message += "<br />";
 			if (drop_val_idx !== set){att_idx++;}
 		}
 
