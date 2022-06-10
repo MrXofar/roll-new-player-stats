@@ -5,7 +5,7 @@
 // by: MrFoxar
 
 ChatMessage.create({
-                  user: game.user._id,
+                  user: game.user.id,
                   content: "Preparing to roll my attributes...",
                   speaker: speaker
                 }, {});
@@ -116,7 +116,7 @@ new Dialog({
   close: async (html) => {
     if (applyChanges) {
 		
-		var dice_so_nice = game.modules.get("dice-so-nice").active;
+		const dice_so_nice = game.modules.get("dice-so-nice")?.active;
 		
 		// Number of d6 to roll
 		let num_diceIndex = parseInt(html.find('[name="num-dice"]')[0].value);
@@ -250,7 +250,7 @@ new Dialog({
 		results_message += "any bonuses at 1st level. ";
 			  
 		ChatMessage.create({
-			user: game.user._id,
+			user: game.user.id,
 			content: results_message,
 			speaker: speaker
 			}, {});
